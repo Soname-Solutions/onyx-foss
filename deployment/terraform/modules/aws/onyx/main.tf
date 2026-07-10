@@ -1,10 +1,12 @@
 locals {
-  workspace       = terraform.workspace
-  name            = var.name
-  merged_tags     = merge(var.tags, { tenant = local.name, environment = local.workspace })
-  vpc_name        = "${var.name}-vpc-${local.workspace}"
-  cluster_name    = "${var.name}-${local.workspace}"
-  bucket_name     = "${var.name}-file-store-${local.workspace}"
+  workspace    = terraform.workspace
+  name         = var.name
+  merged_tags  = merge(var.tags, { tenant = local.name, environment = local.workspace })
+  vpc_name     = "${var.name}-vpc-${local.workspace}"
+  cluster_name = "${var.name}-${local.workspace}"
+  # S3 bucket names are globally unique across all AWS accounts; the account id
+  # keeps this deployment from colliding with other Onyx installs.
+  bucket_name     = "${var.name}-file-store-${local.workspace}-${data.aws_caller_identity.current.account_id}"
   redis_name      = "${var.name}-redis-${local.workspace}"
   postgres_name   = "${var.name}-postgres-${local.workspace}"
   opensearch_name = var.opensearch_domain_name != null ? var.opensearch_domain_name : "${var.name}-opensearch-${local.workspace}"
@@ -14,6 +16,8 @@ locals {
   public_subnets  = var.create_vpc ? module.vpc[0].public_subnets : var.public_subnets
   vpc_cidr_block  = var.create_vpc ? module.vpc[0].vpc_cidr_block : var.vpc_cidr_block
 }
+
+data "aws_caller_identity" "current" {}
 
 provider "aws" {
   region = var.region
