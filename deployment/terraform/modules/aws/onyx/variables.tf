@@ -88,7 +88,9 @@ variable "private_cluster_enabled" {
 variable "cluster_endpoint_public_access_cidrs" {
   type        = list(string)
   description = "CIDR blocks allowed to access the public EKS API endpoint"
-  default     = []
+  # Must be non-empty: EKS coerces an empty list to 0.0.0.0/0 on create, after
+  # which every apply plans a no-op update that the API rejects with 400.
+  default = ["0.0.0.0/0"]
 }
 
 variable "main_node_subnet_ids" {

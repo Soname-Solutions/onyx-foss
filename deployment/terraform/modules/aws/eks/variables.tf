@@ -40,13 +40,13 @@ variable "cluster_endpoint_public_access_cidrs" {
 variable "main_node_instance_types" {
   type        = list(string)
   description = "Instance types for the main node group"
-  default     = ["m7i.4xlarge"]
+  default     = ["m7g.xlarge"]
 }
 
 variable "vespa_node_instance_types" {
   type        = list(string)
   description = "Instance types for the Vespa node group"
-  default     = ["m6i.2xlarge"]
+  default     = ["m7g.large"]
 }
 
 variable "vespa_node_subnet_ids" {
