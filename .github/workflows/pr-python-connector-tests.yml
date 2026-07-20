@@ -50,9 +50,11 @@ on:
       - ".github/actions/login-ecr-pullthrough-cache/**"
     tags:
       - "v*.*.*"
-  schedule:
-    # This cron expression runs the job daily at 16:00 UTC (9am PT)
-    - cron: "0 16 * * *"
+  # Scheduled runs disabled in this fork; the pull_request/push triggers above
+  # still provide signal.
+  # schedule:
+  #   # This cron expression runs the job daily at 16:00 UTC (9am PT)
+  #   - cron: "0 16 * * *"
 
 permissions:
   contents: read
