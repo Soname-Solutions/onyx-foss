@@ -20,8 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  schedule:
-    - cron: "0 7 * * *"   # 07:00 UTC nightly
+  # Scheduled runs disabled in this fork; run manually via workflow_dispatch.
+  # schedule:
+  #   - cron: "0 7 * * *"   # 07:00 UTC nightly
   merge_group:
   pull_request:
     branches: [main]

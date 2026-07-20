@@ -4,10 +4,11 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  schedule:
-    # Runs daily at 10:30 UTC (2:30 AM PST / 3:30 AM PDT) — same slot as
-    # nightly-llm-provider-chat.yml.
-    - cron: "30 10 * * *"
+  # Scheduled runs disabled in this fork; run manually via workflow_dispatch.
+  # schedule:
+  #   # Runs daily at 10:30 UTC (2:30 AM PST / 3:30 AM PDT) — same slot as
+  #   # nightly-llm-provider-chat.yml.
+  #   - cron: "30 10 * * *"
   workflow_dispatch:
 
 permissions: {}

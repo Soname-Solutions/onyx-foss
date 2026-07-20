@@ -19,9 +19,10 @@ on:
       - ".github/workflows/**"
       - ".github/actions/**"
       - "tools/ods/**"
-  schedule:
-    # Nightly at 09:00 UTC.
-    - cron: "0 9 * * *"
+  # Scheduled runs disabled in this fork; run manually via workflow_dispatch.
+  # schedule:
+  #   # Nightly at 09:00 UTC.
+  #   - cron: "0 9 * * *"
   workflow_dispatch:
 
 permissions: {}
