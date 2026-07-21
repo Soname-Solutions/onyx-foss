@@ -6,7 +6,7 @@ name: Build Web Server to ECR (SonnenTag)
 # Spec: docs/superpowers/specs/2026-07-21-sonnentag-web-ecr-build-design.md
 
 on:
-  commit:
+  push:
   workflow_dispatch:
     inputs:
       image_tag:
