@@ -6,6 +6,7 @@ name: Build Web Server to ECR (SonnenTag)
 # Spec: docs/superpowers/specs/2026-07-21-sonnentag-web-ecr-build-design.md
 
 on:
+  commit:
   workflow_dispatch:
     inputs:
       image_tag:
@@ -28,62 +29,62 @@ jobs:
         with:
           persist-credentials: false
 
-      # ECR repo name convention: ecr-{project}-{meaning}-{env}.
-      # project=sonnentag, meaning=onyx-web-server (both fixed for this workflow);
-      # env from DEPLOY_ENV, default "dev". Built via env->$GITHUB_ENV so no ${{ }}
-      # is interpolated into the shell (no template injection).
-      - name: Compute ECR repository name
-        env:
-          DEPLOY_ENV: ${{ vars.DEPLOY_ENV || 'dev' }}
-        run: |
-          echo "ECR_REPOSITORY=ecr-sonnentag-onyx-web-server-${DEPLOY_ENV}" >> "$GITHUB_ENV"
+      # # ECR repo name convention: ecr-{project}-{meaning}-{env}.
+      # # project=sonnentag, meaning=onyx-web-server (both fixed for this workflow);
+      # # env from DEPLOY_ENV, default "dev". Built via env->$GITHUB_ENV so no ${{ }}
+      # # is interpolated into the shell (no template injection).
+      # - name: Compute ECR repository name
+      #   env:
+      #     DEPLOY_ENV: ${{ vars.DEPLOY_ENV || 'dev' }}
+      #   run: |
+      #     echo "ECR_REPOSITORY=ecr-sonnentag-onyx-web-server-${DEPLOY_ENV}" >> "$GITHUB_ENV"
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # ratchet:aws-actions/configure-aws-credentials@v6.2.0
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # ratchet:aws-actions/configure-aws-credentials@v6.2.0
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+      #     aws-region: ${{ vars.AWS_REGION }}
 
-      # Idempotent: create the ECR repo on first run, no-op thereafter.
-      # $ECR_REPOSITORY comes from job env (not direct interpolation) to avoid
-      # shell template injection.
-      - name: Ensure ECR repository exists
-        run: |
-          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" >/dev/null 2>&1 \
-            || aws ecr create-repository --repository-name "$ECR_REPOSITORY" >/dev/null
+      # # Idempotent: create the ECR repo on first run, no-op thereafter.
+      # # $ECR_REPOSITORY comes from job env (not direct interpolation) to avoid
+      # # shell template injection.
+      # - name: Ensure ECR repository exists
+      #   run: |
+      #     aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" >/dev/null 2>&1 \
+      #       || aws ecr create-repository --repository-name "$ECR_REPOSITORY" >/dev/null
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # ratchet:aws-actions/amazon-ecr-login@v2.1.6
+      # - name: Login to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # ratchet:aws-actions/amazon-ecr-login@v2.1.6
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # ratchet:docker/setup-buildx-action@v4
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # ratchet:docker/setup-buildx-action@v4
 
-      # Authenticate Docker Hub so anonymous-pull rate limits don't bite the
-      # oven/bun base pull inside web/Dockerfile.
-      - name: Login to Docker Hub
-        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # ratchet:docker/login-action@v4.3.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # # Authenticate Docker Hub so anonymous-pull rate limits don't bite the
+      # # oven/bun base pull inside web/Dockerfile.
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # ratchet:docker/login-action@v4.3.0
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # web/Dockerfile pulls its hardened Node base from dhi.io, which (though free)
-      # still requires authentication with the same Docker account credentials.
-      - name: Login to Docker Hardened Images (dhi.io)
-        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # ratchet:docker/login-action@v4.3.0
-        with:
-          registry: dhi.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # # web/Dockerfile pulls its hardened Node base from dhi.io, which (though free)
+      # # still requires authentication with the same Docker account credentials.
+      # - name: Login to Docker Hardened Images (dhi.io)
+      #   uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # ratchet:docker/login-action@v4.3.0
+      #   with:
+      #     registry: dhi.io
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push to ECR
-        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # ratchet:docker/build-push-action@v6
-        with:
-          context: ./web
-          file: ./web/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ inputs.image_tag }}
-          build-args: |
-            ONYX_VERSION=${{ inputs.image_tag }}
-            NODE_OPTIONS=--max-old-space-size=8192
+      # - name: Build and push to ECR
+      #   uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # ratchet:docker/build-push-action@v6
+      #   with:
+      #     context: ./web
+      #     file: ./web/Dockerfile
+      #     platforms: linux/amd64
+      #     push: true
+      #     tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ inputs.image_tag }}
+      #     build-args: |
+      #       ONYX_VERSION=${{ inputs.image_tag }}
+      #       NODE_OPTIONS=--max-old-space-size=8192
