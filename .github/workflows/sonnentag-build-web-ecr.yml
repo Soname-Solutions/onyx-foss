@@ -20,7 +20,9 @@ permissions:
 
 jobs:
   build-web-ecr:
-    runs-on: ubuntu-latest
+    # Native arm64 runner (free for public repos) so the arm64 build isn't
+    # emulated under QEMU. Our deployment target is Graviton/arm64.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -81,7 +83,7 @@ jobs:
         with:
           context: ./web
           file: ./web/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ inputs.image_tag }}
           build-args: |
