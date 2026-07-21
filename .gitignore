@@ -67,3 +67,6 @@ plans/
 .claude/scheduled_tasks.lock
 .claude/worktrees/
 !.claude/settings.json
+
+# SonnenTag: keep our planning docs tracked (re-includes the dir excluded by "plans/" above)
+!docs/superpowers/plans/
